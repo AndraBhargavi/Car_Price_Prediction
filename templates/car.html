@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoValue | Car Price Predictor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-light: #4895ef;
+            --secondary: #3f37c9;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --gray: #6c757d;
+            --white: #ffffff;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        
+        .logo i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-right: 0.8rem;
+        }
+        
+        .logo h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .tagline {
+            font-size: 1.1rem;
+            color: var(--gray);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            background-color: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            animation: slideUp 0.6s ease-out;
+        }
+        
+        .form-section {
+            padding: 2.5rem;
+            background-color: var(--white);
+        }
+        
+        .result-section {
+            padding: 2.5rem;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .form-title, .result-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--dark);
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        
+        .form-title::after, .result-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 3px;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.5s ease-out;
+            animation-fill-mode: both;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background-color: var(--light);
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        button {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .prediction-result {
+            background-color: var(--white);
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            text-align: center;
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        .price-display {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 1rem 0;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .price-label {
+            font-size: 1rem;
+            color: var(--gray);
+        }
+        
+        .input-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .summary-item {
+            background-color: var(--white);
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        }
+        
+        .summary-item strong {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-bottom: 0.3rem;
+        }
+        
+        .summary-item span {
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .chart-container {
+            height: 200px;
+            margin-top: 2rem;
+            position: relative;
+        }
+        
+        .features-impact {
+            margin-top: 2rem;
+        }
+        
+        .feature-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+        
+        .feature-name {
+            width: 120px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .bar-container {
+            flex-grow: 1;
+            height: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary-light), var(--primary));
+            border-radius: 5px;
+        }
+        
+        .feature-value {
+            width: 60px;
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem 0;
+            color: var(--gray);
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #dee2e6;
+        }
+        
+        .empty-state p {
+            font-size: 1rem;
+        }
+        
+        .decoration {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(67, 97, 238, 0.1) 0%, rgba(67, 97, 238, 0) 100%);
+            z-index: 0;
+        }
+        
+        .decoration-1 {
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+        }
+        
+        .decoration-2 {
+            bottom: -30px;
+            left: -30px;
+            width: 150px;
+            height: 150px;
+        }
+        
+        @media (max-width: 992px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-section, .result-section {
+                padding: 2rem;
+            }
+            
+            .input-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Animations for form groups */
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.2s; }
+        .form-group:nth-child(3) { animation-delay: 0.3s; }
+        .form-group:nth-child(4) { animation-delay: 0.4s; }
+        .form-group:nth-child(5) { animation-delay: 0.5s; }
+        .form-group:nth-child(6) { animation-delay: 0.6s; }
+        .form-group:nth-child(7) { animation-delay: 0.7s; }
+        .form-group:nth-child(8) { animation-delay: 0.8s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-car"></i>
+                <h1>AutoValue</h1>
+            </div>
+            <p class="tagline">Get an accurate estimate of your car's market value based on comprehensive data analysis</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="form-section">
+                <h2 class="form-title">Car Details</h2>
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="car_name">Car Model</label>
+                        <select id="car_name" name="car_name" required>
+                            <option value="">Select Car Model</option>
+                            <option value="ritz" {% if car_name == 'ritz' %}selected{% endif %}>Maruti Ritz</option>
+                            <option value="sx4" {% if car_name == 'sx4' %}selected{% endif %}>Maruti SX4</option>
+                            <option value="ciaz" {% if car_name == 'ciaz' %}selected{% endif %}>Maruti Ciaz</option>
+                            <option value="wagon r" {% if car_name == 'wagon r' %}selected{% endif %}>Maruti Wagon R</option>
+                            <option value="swift" {% if car_name == 'swift' %}selected{% endif %}>Maruti Swift</option>
+                            <option value="innova" {% if car_name == 'innova' %}selected{% endif %}>Toyota Innova</option>
+                            <option value="i20" {% if car_name == 'i20' %}selected{% endif %}>Hyundai i20</option>
+                            <option value="corolla" {% if car_name == 'corolla' %}selected{% endif %}>Toyota Corolla</option>
+                            <option value="city" {% if car_name == 'city' %}selected{% endif %}>Honda City</option>
+                            <option value="verna" {% if car_name == 'verna' %}selected{% endif %}>Hyundai Verna</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="present_price">Current Market Price (₹ lakhs)</label>
+                        <input type="number" id="present_price" name="present_price" step="0.01" min="1" max="100" value="{{ present_price or '' }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="kms_driven">Kilometers Driven</label>
+                        <input type="number" id="kms_driven" name="kms_driven" min="0" max="500000" value="{{ kms_driven or '' }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fuel_type">Fuel Type</label>
+                        <select id="fuel_type" name="fuel_type" required>
+                            <option value="">Select Fuel Type</option>
+                            <option value="Petrol" {% if fuel_type == 'Petrol' %}selected{% endif %}>Petrol</option>
+                            <option value="Diesel" {% if fuel_type == 'Diesel' %}selected{% endif %}>Diesel</option>
+                            <option value="CNG" {% if fuel_type == 'CNG' %}selected{% endif %}>CNG</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="seller_type">Seller Type</label>
+                        <select id="seller_type" name="seller_type" required>
+                            <option value="">Select Seller Type</option>
+                            <option value="Dealer" {% if seller_type == 'Dealer' %}selected{% endif %}>Dealer</option>
+                            <option value="Individual" {% if seller_type == 'Individual' %}selected{% endif %}>Individual</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="transmission">Transmission</label>
+                        <select id="transmission" name="transmission" required>
+                            <option value="">Select Transmission</option>
+                            <option value="Manual" {% if transmission == 'Manual' %}selected{% endif %}>Manual</option>
+                            <option value="Automatic" {% if transmission == 'Automatic' %}selected{% endif %}>Automatic</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="past_owners">Number of Past Owners</label>
+                        <input type="number" id="past_owners" name="past_owners" min="0" max="3" value="{{ past_owners or '' }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="age">Age of Car (years)</label>
+                        <input type="number" id="age" name="age" min="1" max="20" value="{{ age or '' }}" required>
+                    </div>
+                    
+                    <button type="submit">
+                        <i class="fas fa-calculator"></i> Calculate Value
+                    </button>
+                </form>
+            </div>
+            
+            <div class="result-section">
+                <div class="decoration decoration-1"></div>
+                <div class="decoration decoration-2"></div>
+                
+                <h2 class="result-title">Valuation Report</h2>
+                
+                {% if prediction %}
+                <div class="prediction-result">
+                    <div class="price-label">Estimated Market Value</div>
+                    <div class="price-display">₹{{ prediction }} lakhs</div>
+                    <div class="price-comparison">
+                        <small>This is {{ ((present_price|float - prediction|float) / present_price|float * 100)|abs|round(1) }}% 
+                            {% if prediction|float < present_price|float %}lower{% else %}higher{% endif %} than current price</small>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="priceTrendChart"></canvas>
+                </div>
+                
+                <h3>Input Summary</h3>
+                <div class="input-summary">
+                    <div class="summary-item">
+                        <strong>Car Model</strong>
+                        <span>{{ car_name or '' }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <strong>Current Price</strong>
+                        <span>₹{{ present_price or '' }} lakhs</span>
+                    </div>
+                    <div class="summary-item">
+                        <strong>Kilometers</strong>
+                        <span>{{ "{:,}".format(kms_driven|int) }} km</span>
+                    </div>
+                    <div class="summary-item">
+                        <strong>Fuel Type</strong>
+                        <span>{{ fuel_type or '' }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <strong>Seller Type</strong>
+                        <span>{{ seller_type or '' }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <strong>Transmission</strong>
+                        <span>{{ transmission or '' }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <strong>Past Owners</strong>
+                        <span>{{ past_owners or '' }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <strong>Age</strong>
+                        <span>{{ age or '' }} years</span>
+                    </div>
+                </div>
+                
+                <div class="features-impact">
+                    <h4>Key Value Factors</h4>
+                    <div class="feature-bar">
+                        <div class="feature-name">Mileage</div>
+                        <div class="bar-container">
+                            <div class="bar" style="width: {% if kms_driven|int > 100000 %}30%{% elif kms_driven|int > 50000 %}60%{% else %}90%{% endif %}"></div>
+                        </div>
+                        <div class="feature-value">
+                            {% if kms_driven|int > 100000 %}High{% elif kms_driven|int > 50000 %}Medium{% else %}Low{% endif %}
+                        </div>
+                    </div>
+                    <div class="feature-bar">
+                        <div class="feature-name">Age</div>
+                        <div class="bar-container">
+                            <div class="bar" style="width: {% if age|int > 10 %}30%{% elif age|int > 5 %}60%{% else %}90%{% endif %}"></div>
+                        </div>
+                        <div class="feature-value">
+                            {% if age|int > 10 %}Old{% elif age|int > 5 %}Mid{% else %}New{% endif %}
+                        </div>
+                    </div>
+                    <div class="feature-bar">
+                        <div class="feature-name">Owners</div>
+                        <div class="bar-container">
+                            <div class="bar" style="width: {% if past_owners|int > 1 %}40%{% else %}80%{% endif %}"></div>
+                        </div>
+                        <div class="feature-value">
+                            {% if past_owners|int > 1 %}Multiple{% else %}Single{% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-chart-line"></i>
+                    <p>Fill in your car details to get an instant valuation report</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            let isValid = true;
+            const inputs = this.querySelectorAll('input[required], select[required]');
+            
+            inputs.forEach(input => {
+                if (!input.value) {
+                    isValid = false;
+                    input.style.borderColor = 'var(--warning)';
+                    input.style.boxShadow = '0 0 0 3px rgba(247, 37, 133, 0.2)';
+                    
+                    // Add error message
+                    if (!input.nextElementSibling || !input.nextElementSibling.classList.contains('error-message')) {
+                        const errorMsg = document.createElement('div');
+                        errorMsg.className = 'error-message';
+                        errorMsg.style.color = 'var(--warning)';
+                        errorMsg.style.fontSize = '0.8rem';
+                        errorMsg.style.marginTop = '0.3rem';
+                        errorMsg.textContent = 'This field is required';
+                        input.parentNode.insertBefore(errorMsg, input.nextSibling);
+                    }
+                } else {
+                    input.style.borderColor = '#ddd';
+                    input.style.boxShadow = 'none';
+                    
+                    // Remove error message if exists
+                    if (input.nextElementSibling && input.nextElementSibling.classList.contains('error-message')) {
+                        input.parentNode.removeChild(input.nextElementSibling);
+                    }
+                }
+            });
+            
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+
+        // Price trend chart
+        {% if prediction %}
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('priceTrendChart').getContext('2d');
+            const age = {{ age|int }};
+            const currentPrice = {{ present_price|float }};
+            const predictedPrice = {{ prediction|float }};
+            
+            // Generate data points for the chart
+            const years = [];
+            const prices = [];
+            
+            for (let i = 0; i <= age; i++) {
+                years.push(i);
+                // Simple linear depreciation model for demo
+                const depreciation = (currentPrice - predictedPrice) / age * i;
+                prices.push(currentPrice - depreciation);
+            }
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: [{
+                        label: 'Estimated Value Trend',
+                        data: prices,
+                        borderColor: 'var(--primary)',
+                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'var(--white)',
+                        pointBorderColor: 'var(--primary)',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Value: ₹' + context.parsed.y.toFixed(2) + ' lakhs';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Years'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Value (₹ lakhs)'
+                            },
+                            min: Math.max(0, predictedPrice - 2),
+                            max: currentPrice + 2
+                        }
+                    }
+                }
+            });
+        });
+        {% endif %}
+    </script>
+</body>
+</html>
